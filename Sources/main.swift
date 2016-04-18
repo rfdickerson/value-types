@@ -1,7 +1,10 @@
 import Foundation
 
-enum Body {
-  case simpleText(String)
+struct Body {
+    var bytes: [UInt8]
+    init(bytes: [UInt8]) {
+        self.bytes = bytes
+    }
 }
 
 struct Version {
@@ -12,53 +15,50 @@ struct Version {
 class ResponseA {
 
   var body: Body
-
-
+  var headers = [String: String]()
+  
   init(body: Body) {
     self.body = body
   }
-
+  
 }
 
 struct ResponseB {
-
   var body: Body
+  var headers: [String: String]
+}
 
+func handle(headers: [String: String]) -> [String: String] {
+    var newHeaders = headers
+    
+    if newHeaders["myHeader"] != nil {
+        newHeaders["myHeader"] = nil
+    } else {
+        newHeaders["myHeader"] = "myHeaderValue"
+    }
+    return newHeaders
 }
 
 func handle(_ response: ResponseA) {
-
-  switch response.body {
-    case .simpleText(let text):
-    let newtext = text + "Additional information"
-
-    response.body = .simpleText(newtext)
-  }
+    response.headers = handle(headers: response.headers)
 }
 
 func handle(_ response: ResponseB) -> ResponseB {
-  // mutate here
-  switch response.body {
-  case .simpleText(let text):
-    let newtext = text + "Additional information"
-
-    let newResponse = ResponseB(body: .simpleText(newtext))
-    return newResponse
-  }
-  
+    let newHeaders = handle(headers: response.headers)
+    return ResponseB(body: response.body, headers: newHeaders)
 }
 
 
 let payload = String(repeating: Character("~"), count: 5000000)
 
-var a = ResponseA(body: .simpleText(payload))
-var b = ResponseB(body: .simpleText(payload))
-
-//for i in 0...100000 {
-//  b = handle( b)
-//}
+var a = ResponseA(body: Body(bytes: Array(payload.utf8)))
+var b = ResponseB(body: Body(bytes: Array(payload.utf8)), headers: [String: String]())
 
 for i in 0...100000 {
-  handle(a)
+  b = handle(b)
 }
+
+//for i in 0...100000 {
+//  handle(a)
+//}
 // print(b.body) 
