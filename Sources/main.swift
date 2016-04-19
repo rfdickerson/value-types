@@ -16,100 +16,53 @@
  
 import Foundation
 
-enum Body {
-  
-  case plainText(String)
-  case data([UInt8])
-  case Nothing
-  
-}
-
-struct Version {
-  
-  var major: Int
-  var minor: Int
-
-}
-
-
-final class ResponseA {
-
-  var body: Body
-  var headers = [String:String]()
-  
-  init(body: Body) {
-    self.body = body
-  }
-  
-}
-
-struct ResponseB {
-  var body: Body
-  var headers = [String:String]()
-}
-
 /**
  This method mutates Response in place
  */
-func handle(_ response: ResponseA) {
+func handle(response: ResponseA, mutate: Bool) {
 
-  switch response.body {
-    case .plainText(let text):
-      let newtext = text + "Additional information"
-      response.headers["OAuth"] = "token here"
-      response.body = .plainText(newtext)
-    default:
-      print("Unknown response type")
-      return
+    guard mutate == true else {
+        return
+    }
+    
+    response.headers["OAuth"] = "token here"
+    
+    switch response.body {
+        case .plainText(let text):
+            let newtext = text + "Additional information"
+      
+            response.body = .plainText(newtext)
+        default:
+            print("Unknown response type")
+            return
   }
   
 }
 
-func handle(_ response: ResponseB) -> ResponseB {
-  // mutate here
-  switch response.body {
-    case .plainText(let text):
-      let newtext = text + "Additional information"
-      var newheaders = response.headers
-      newheaders["OAuth"] = "token here"
+func handle(response: ResponseB, mutate: Bool ) -> ResponseB {
+  
+    guard mutate == true else {
+        return response
+    }
+    
+    var newheaders = response.headers
+    newheaders["OAuth"] = "token here"
+    
+    switch response.body {
+        case .plainText(let text):
+            let newtext = text + "Additional information"
+     
 
-      let newResponse = ResponseB(body: .plainText(newtext),
-        headers: newheaders )
-      return newResponse
-    default:
-      print("Unknown response type")
-      return ResponseB(body: .Nothing, headers: response.headers)
-  }
+            let newResponse = ResponseB(body: .plainText(newtext),
+                                        headers: newheaders )
+            return newResponse
+        default:
+            print("Unknown response type")
+            return ResponseB(body: .Nothing, headers: response.headers)
+    }
+    
 }
 
-
-
-
-
-
-
-func timestamp() -> Double {
-
-  var tv = timeval()
-  gettimeofday(&tv, nil)
-  let t = Double(tv.tv_sec) + Double(tv.tv_usec)*1e-6
-  return t
-}
-
-/**
- Benchmark a function
-
-  parameter function: a function to profile 
-*/
-func benchmark(_ function: (Void)->Void) -> Double {
-
-  let t1 = timestamp()
-  function()
-  let t2 = timestamp()
-
-  return t2-t1
-
-}
 
 /// Experiment goes here 
 var structureTimes = [Double]() 
@@ -127,13 +80,13 @@ for i in 1...200 {
 
   let classTime = benchmark( {
     for _ in 0...iterations {
-      handle(a)
+        handle(a, mutate: false)
     }
   })
   
   let structTime = benchmark( {
     for _ in 0...iterations {
-      handle(b)
+        handle(b, mutate: false)
     }
   })
   
