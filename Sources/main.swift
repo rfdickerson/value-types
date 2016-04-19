@@ -59,6 +59,7 @@ func handle(_ response: ResponseA) {
       response.headers["OAuth"] = "token here"
       response.body = .plainText(newtext)
     default:
+      print("Unknown response type")
       return
   }
   
@@ -76,15 +77,15 @@ func handle(_ response: ResponseB) -> ResponseB {
         headers: newheaders )
       return newResponse
     default:
+      print("Unknown response type")
       return ResponseB(body: .Nothing, headers: response.headers)
   }
 }
 
 
-let payload = String(repeating: Character("~"), count: 5000000)
 
-var a = ResponseA(body: .plainText(payload))
-var b = ResponseB(body: .plainText(payload), headers: [String:String]())
+
+
 
 
 func timestamp() -> Double {
@@ -95,6 +96,11 @@ func timestamp() -> Double {
   return t
 }
 
+/**
+ Benchmark a function
+
+  parameter function: a function to profile 
+*/
 func benchmark(_ function: (Void)->Void) -> Double {
 
   let t1 = timestamp()
@@ -105,21 +111,40 @@ func benchmark(_ function: (Void)->Void) -> Double {
 
 }
 
-let classTime = benchmark( {
-  for _ in 0...1 {
-    handle(a)
-  }
-})
+/// Experiment goes here 
+var structureTimes = [Double]() 
+var classTimes = [Double]()
 
-let structTime = benchmark( {
-  for _ in 0...1 {
-    handle(b)
-  }
-})
+for i in 1...200 {
+  
+  let iterations = 100
+  let size = 500*i 
+
+  let payload = String(repeating: Character("~"), count: size)
+  
+  var a = ResponseA(body: .plainText(payload))
+  var b = ResponseB(body: .plainText(payload), headers: [String:String]())
+
+  let classTime = benchmark( {
+    for _ in 0...iterations {
+      handle(a)
+    }
+  })
+  
+  let structTime = benchmark( {
+    for _ in 0...iterations {
+      handle(b)
+    }
+  })
+  
+  classTimes.append(classTime)
+  structureTimes.append(structTime) 
+
+}
 
 
-print("Using structures was \(structTime) ms")
+print(structureTimes)
 
-print("Using classes was \(classTime) ms")
+print(classTimes)
 
 
