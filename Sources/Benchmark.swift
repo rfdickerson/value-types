@@ -24,17 +24,35 @@ func timestamp() -> Double {
     return t
 }
 
+
+func total (trials: [Double]) -> Double {
+    return trials.reduce(0, combine: +)
+}
+
+func average (trials: [Double]) -> Double {
+    return total(trials) / Double(trials.count)
+}
+
+
 /**
  Benchmark a function
  
  parameter function: a function to profile
  */
-func benchmark(function: (Void)->Void) -> Double {
+func benchmark(function: (Void)->Void) -> (Double,Double) {
     
-    let t1 = timestamp()
-    function()
-    let t2 = timestamp()
+    let numTrials = 100
     
-    return t2-t1
+    var trials = [Double](repeating: 0, count: numTrials)
+    
+    for i in 1...numTrials {
+        let t1 = timestamp()
+        function()
+        let t2 = timestamp()
+        trials[i-1] = t2-t1
+    
+    }
+    
+    return (average(trials), 0)
     
 }

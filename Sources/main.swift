@@ -65,7 +65,7 @@ var E2 = [Double]()
 var E3 = [Double]()
 var E4 = [Double]()
 
-for i in 1...200 {
+for i in 1...2000 {
     
     let iterations = 100
     let size = 500*i
@@ -76,11 +76,11 @@ for i in 1...200 {
     var b = ResponseStruct(body: .plainText(payload), headers: Headers())
     
     let classTime = benchmark( {
-            appendData(a)
+        appendData(a)
     })
     
     let structTime = benchmark( {
-            appendData(b)
+        appendData(b)
     })
     
     let classHeaderTime = benchmark( {
@@ -88,13 +88,13 @@ for i in 1...200 {
     })
     
     let structHeaderTime = benchmark( {
-        changeHeaders(a)
+        changeHeaders(b)
     })
     
-    E1.append(classTime)
-    E2.append(structTime)
-    E3.append(classHeaderTime)
-    E4.append(structHeaderTime)
+    E1.append(classTime.0)
+    E2.append(structTime.0)
+    E3.append(classHeaderTime.0)
+    E4.append(structHeaderTime.0)
 }
 
 
