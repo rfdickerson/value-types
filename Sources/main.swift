@@ -17,49 +17,29 @@
 import Foundation
 
 
-
-//
-//  Experiment.swift
-//  valuetypes
-//
-//  Created by Robert Dickerson on 4/19/16.
-//
-//
-
-import Foundation
-
 /**
  This method mutates Response in place
  */
-func handle(response: ResponseClass) {
-    
-    response.headers["OAuth"] = "token here"
+func appendData(response: ResponseClass) {
     
     switch response.body {
-    case .plainText(let text):
-        let newtext = text + "Additional information"
-        
-        response.body = .plainText(newtext)
-    default:
-        print("Unknown response type")
-        return
+        case .plainText(let text):
+            let newtext = text + "Additional information"
+            response.body = .plainText(newtext)
+        default:
+            print("Unknown response type")
     }
     
 }
 
-func handle(response: ResponseStruct ) -> ResponseStruct {
-    
-    
-    var newheaders = response.headers
-    newheaders["OAuth"] = "token here"
+func appendData(response: ResponseStruct ) -> ResponseStruct {
     
     switch response.body {
     case .plainText(let text):
         let newtext = text + "Additional information"
         
-        
         let newResponse = ResponseStruct(body: .plainText(newtext),
-                                    headers: newheaders )
+                                    headers: response.headers )
         return newResponse
     default:
         print("Unknown response type")
@@ -68,10 +48,22 @@ func handle(response: ResponseStruct ) -> ResponseStruct {
     
 }
 
+func changeHeaders(response: ResponseClass) {
+    response.headers["OAuth"] = "token here"
+
+}
+
+func changeHeaders(response: ResponseStruct) -> ResponseStruct {
+    var newHeaders = response.headers
+    newHeaders["OAuth"] = "token here"
+    return ResponseStruct(body: response.body, headers: newHeaders)
+}
 
 /// Experiment goes here
-var structureTimes = [Double]()
-var classTimes = [Double]()
+var E1 = [Double]()
+var E2 = [Double]()
+var E3 = [Double]()
+var E4 = [Double]()
 
 for i in 1...200 {
     
@@ -84,23 +76,29 @@ for i in 1...200 {
     var b = ResponseStruct(body: .plainText(payload), headers: Headers())
     
     let classTime = benchmark( {
-        for _ in 0...iterations {
-            handle(a)
-        }
+            appendData(a)
     })
     
     let structTime = benchmark( {
-        for _ in 0...iterations {
-            handle(b)
-        }
+            appendData(b)
     })
     
-    classTimes.append(classTime)
-    structureTimes.append(structTime)
+    let classHeaderTime = benchmark( {
+        changeHeaders(a)
+    })
     
+    let structHeaderTime = benchmark( {
+        changeHeaders(a)
+    })
+    
+    E1.append(classTime)
+    E2.append(structTime)
+    E3.append(classHeaderTime)
+    E4.append(structHeaderTime)
 }
 
 
-print(structureTimes)
-
-print(classTimes)
+print(E1)
+print(E2)
+print(E3)
+print(E4)
