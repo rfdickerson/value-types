@@ -16,88 +16,91 @@
  
 import Foundation
 
+
+
+//
+//  Experiment.swift
+//  valuetypes
+//
+//  Created by Robert Dickerson on 4/19/16.
+//
+//
+
+import Foundation
+
 /**
  This method mutates Response in place
  */
-func handle(response: ResponseA, mutate: Bool) {
-
-    guard mutate == true else {
-        return
-    }
+func handle(response: ResponseClass) {
     
     response.headers["OAuth"] = "token here"
     
     switch response.body {
-        case .plainText(let text):
-            let newtext = text + "Additional information"
-      
-            response.body = .plainText(newtext)
-        default:
-            print("Unknown response type")
-            return
-  }
-  
+    case .plainText(let text):
+        let newtext = text + "Additional information"
+        
+        response.body = .plainText(newtext)
+    default:
+        print("Unknown response type")
+        return
+    }
+    
 }
 
-func handle(response: ResponseB, mutate: Bool ) -> ResponseB {
-  
-    guard mutate == true else {
-        return response
-    }
+func handle(response: ResponseStruct ) -> ResponseStruct {
+    
     
     var newheaders = response.headers
     newheaders["OAuth"] = "token here"
     
     switch response.body {
-        case .plainText(let text):
-            let newtext = text + "Additional information"
-     
-
-            let newResponse = ResponseB(body: .plainText(newtext),
-                                        headers: newheaders )
-            return newResponse
-        default:
-            print("Unknown response type")
-            return ResponseB(body: .Nothing, headers: response.headers)
+    case .plainText(let text):
+        let newtext = text + "Additional information"
+        
+        
+        let newResponse = ResponseStruct(body: .plainText(newtext),
+                                    headers: newheaders )
+        return newResponse
+    default:
+        print("Unknown response type")
+        return ResponseStruct(body: .Nothing, headers: response.headers)
     }
     
 }
 
 
-/// Experiment goes here 
-var structureTimes = [Double]() 
+/// Experiment goes here
+var structureTimes = [Double]()
 var classTimes = [Double]()
 
 for i in 1...200 {
-  
-  let iterations = 100
-  let size = 500*i 
-
-  let payload = String(repeating: Character("~"), count: size)
-  
-  var a = ResponseA(body: .plainText(payload))
-  var b = ResponseB(body: .plainText(payload), headers: [String:String]())
-
-  let classTime = benchmark( {
-    for _ in 0...iterations {
-        handle(a, mutate: false)
-    }
-  })
-  
-  let structTime = benchmark( {
-    for _ in 0...iterations {
-        handle(b, mutate: false)
-    }
-  })
-  
-  classTimes.append(classTime)
-  structureTimes.append(structTime) 
-
+    
+    let iterations = 100
+    let size = 500*i
+    
+    let payload = String(repeating: Character("~"), count: size)
+    
+    var a = ResponseClass(body: .plainText(payload))
+    var b = ResponseStruct(body: .plainText(payload), headers: Headers())
+    
+    let classTime = benchmark( {
+        for _ in 0...iterations {
+            handle(a)
+        }
+    })
+    
+    let structTime = benchmark( {
+        for _ in 0...iterations {
+            handle(b)
+        }
+    })
+    
+    classTimes.append(classTime)
+    structureTimes.append(structTime)
+    
 }
 
 
 print(structureTimes)
 
 print(classTimes)
-
-

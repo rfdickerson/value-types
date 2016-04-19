@@ -16,9 +16,4 @@
 
 import Foundation
 
-struct ResponseStruct {
-    
-    var body: Body
-    var headers = Headers()
-    
-}
+typealias Headers = [String:String]
